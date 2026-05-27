@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Box Breathing — Jungle Sanctuary</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@200;300;400&display=swap');
+
+  :root {
+    --deep: #0a1a0f;
+    --forest: #0d2b18;
+    --canopy: #1a4a2e;
+    --leaf: #2d7a4f;
+    --mist: rgba(180, 220, 200, 0.12);
+    --gold: #c8a96e;
+    --gold-glow: rgba(200, 169, 110, 0.3);
+    --cream: #e8e0d0;
+    --glass: rgba(10, 30, 18, 0.6);
+    --glass-border: rgba(180, 220, 200, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    font-family: 'Jost', sans-serif;
+    background: var(--deep);
+    color: var(--cream);
+    cursor: default;
+  }
+
+  /* ── JUNGLE BACKGROUND ── */
+  #jungle {
+    position: fixed; inset: 0;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  /* Sky gradient */
+  #sky {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%,
+      #1a3a22 0%, #0d2218 40%, #060e08 100%);
+  }
+
+  /* Light rays */
+  .ray {
+    position: absolute;
+    top: -10%;
+    width: 3px;
+    height: 120%;
+    background: linear-gradient(180deg,
+      rgba(200,169,110,0.18) 0%,
+      rgba(200,169,110,0.06) 50%,
+      transparent 100%);
+    transform-origin: top center;
+    filter: blur(8px);
+    animation: rayFlicker 8s ease-in-out infinite;
+  }
+  .ray:nth-child(1) { left: 28%; width: 60px; transform: rotate(-8deg); animation-delay: 0s; opacity: 0.7; }
+  .ray:nth-child(2) { left: 48%; width: 40px; transform: rotate(2deg); animation-delay: 2s; opacity: 0.5; }
+  .ray:nth-child(3) { left: 65%; width: 80px; transform: rotate(10deg); animation-delay: 4s; opacity: 0.6; }
+  .ray:nth-child(4) { left: 38%; width: 25px; transform: rotate(-3deg); animation-delay: 6s; opacity: 0.4; }
+
+  @keyframes rayFlicker {
+    0%,100% { opacity: var(--op, 0.6); }
+    50% { opacity: calc(var(--op, 0.6) * 0.5); }
+  }
+
+  /* Mist layers */
+  .mist-layer {
+    position: absolute;
+    left: -20%; width: 140%;
+    height: 120px;
+    border-radius: 50%;
+    filter: blur(30px);
+    animation: mistDrift linear infinite;
+    opacity: 0;
+  }
+  .mist-layer:nth-child(1) {
+    bottom: 35%; background: rgba(160,210,180,0.07);
+    animation-duration: 20s; animation-delay: 0s;
+  }
+  .mist-layer:nth-child(2) {
+    bottom: 45%; background: rgba(140,200,170,0.05);
+    animation-duration: 28s; animation-delay: -10s;
+  }
+  .mist-layer:nth-child(3) {
+    bottom: 25%; background: rgba(180,220,190,0.06);
+    animation-duration: 35s; animation-delay: -5s;
+  }
+
+  @keyframes mistDrift {
+    0%   { transform: translateX(-10%); opacity: 0; }
+    15%  { opacity: 1; }
+    85%  { opacity: 1; }
+    100% { transform: translateX(10%); opacity: 0; }
+  }
+
+  /* Background trees */
+  .bg-trees {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 75%;
+  }
+
+  /* Foreground leaves */
+  .leaf-cluster {
+    position: absolute;
+    animation: leafSway ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+
+  @keyframes leafSway {
+    0%,100% { transform: rotate(0deg) translateY(0); }
+    33%  { transform: rotate(2.5deg) translateY(-4px); }
+    66%  { transform: rotate(-1.5deg) translateY(-2px); }
+  }
+
+  /* Ground */
+  #ground {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 22%;
+    background: linear-gradient(180deg, #0a1a0d 0%, #060e08 100%);
+  }
+
+  /* ── APP CARD ── */
+  #app {
+    position: relative; z-index: 10;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 48px 52px 40px;
+    width: min(420px, 92vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    box-shadow:
+      0 8px 60px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  .title-block { text-align: center; }
+  .title-block h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 2rem;
+    letter-spacing: 0.08em;
+    color: var(--cream);
+    line-height: 1;
+  }
+  .title-block p {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(200,169,110,0.7);
+    margin-top: 6px;
+    font-weight: 200;
+  }
+
+  /* ── BREATHING ANIMATION ── */
+  #breath-ring {
+    position: relative;
+    width: 180px; height: 180px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .ring-outer {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 1.5px solid rgba(200,169,110,0.2);
+    transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 1.5s ease,
+                box-shadow 1.5s ease;
+  }
+
+  .ring-mid {
+    position: absolute;
+    inset: 16px;
+    border-radius: 50%;
+    border: 1px solid rgba(45,122,79,0.4);
+    transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 1.5s ease;
+  }
+
+  .ring-core {
+    position: absolute;
+    inset: 36px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(200,169,110,0.25) 0%,
+      rgba(45,122,79,0.15) 50%,
+      transparent 100%);
+    transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1),
+                background 1.5s ease;
+  }
+
+  .ring-dot {
+    position: absolute;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 16px var(--gold-glow);
+    z-index: 2;
+    transition: box-shadow 1.5s ease;
+  }
+
+  /* Phase states */
+  #breath-ring.inhale .ring-outer  { transform: scale(1.35); border-color: rgba(200,169,110,0.5); box-shadow: 0 0 40px rgba(200,169,110,0.12); }
+  #breath-ring.inhale .ring-mid    { transform: scale(1.25); opacity: 1; }
+  #breath-ring.inhale .ring-core   { transform: scale(1.4); background: radial-gradient(circle, rgba(200,169,110,0.4) 0%, rgba(45,122,79,0.2) 50%, transparent 100%); }
+  #breath-ring.inhale .ring-dot    { box-shadow: 0 0 28px rgba(200,169,110,0.8); }
+
+  #breath-ring.hold-in .ring-outer  { transform: scale(1.35); border-color: rgba(180,220,200,0.5); box-shadow: 0 0 50px rgba(45,122,79,0.2); }
+  #breath-ring.hold-in .ring-mid    { transform: scale(1.25); opacity: 0.8; }
+  #breath-ring.hold-in .ring-core   { transform: scale(1.4); }
+  #breath-ring.hold-in .ring-dot    { background: #a8d8c0; box-shadow: 0 0 28px rgba(168,216,192,0.8); }
+
+  #breath-ring.exhale .ring-outer  { transform: scale(1); border-color: rgba(200,169,110,0.2); box-shadow: none; }
+  #breath-ring.exhale .ring-mid    { transform: scale(1); opacity: 0.4; }
+  #breath-ring.exhale .ring-core   { transform: scale(1); background: radial-gradient(circle, rgba(200,169,110,0.1) 0%, rgba(45,122,79,0.05) 50%, transparent 100%); }
+  #breath-ring.exhale .ring-dot    { background: var(--gold); box-shadow: 0 0 10px rgba(200,169,110,0.3); }
+
+  #breath-ring.hold-out .ring-outer  { transform: scale(1); border-color: rgba(100,160,130,0.3); }
+  #breath-ring.hold-out .ring-mid    { opacity: 0.3; }
+  #breath-ring.hold-out .ring-dot    { background: #7ab8a0; box-shadow: 0 0 10px rgba(122,184,160,0.4); }
+
+  /* Phase label */
+  #phase-block { text-align: center; min-height: 56px; }
+
+  #phase-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--cream);
+    letter-spacing: 0.05em;
+    transition: opacity 0.4s ease;
+    display: block;
+  }
+
+  #phase-count {
+    font-size: 2.6rem;
+    font-weight: 200;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    line-height: 1;
+    margin-top: 2px;
+    display: block;
+    font-variant-numeric: tabular-nums;
+    transition: opacity 0.4s ease;
+  }
+
+  /* Session timer */
+  #session-timer {
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(200,169,110,0.55);
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Phase progress bar */
+  #phase-bar-wrap {
+    width: 100%;
+    height: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  #phase-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--leaf), var(--gold));
+    border-radius: 2px;
+    width: 0%;
+    transition: background 1.5s ease;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .btn {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 300;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    border: 1px solid var(--glass-border);
+    background: transparent;
+    color: var(--cream);
+    padding: 10px 24px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+  .btn:hover {
+    background: rgba(200,169,110,0.1);
+    border-color: rgba(200,169,110,0.4);
+    color: var(--gold);
+  }
+  .btn.primary {
+    background: rgba(200,169,110,0.15);
+    border-color: rgba(200,169,110,0.4);
+    color: var(--gold);
+  }
+  .btn.primary:hover {
+    background: rgba(200,169,110,0.25);
+  }
+
+  /* Volume */
+  .volume-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .vol-icon {
+    font-size: 0.85rem;
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 8px var(--gold-glow);
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Idle overlay */
+  #idle-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 0.8s ease;
+  }
+  #idle-hint p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: rgba(200,169,110,0.5);
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+
+<!-- JUNGLE BACKGROUND -->
+<div id="jungle">
+  <div id="sky"></div>
+
+  <!-- Light rays -->
+  <div class="ray"></div>
+  <div class="ray"></div>
+  <div class="ray"></div>
+  <div class="ray"></div>
+
+  <!-- SVG jungle scene -->
+  <svg id="jungle-svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMax slice"
+       xmlns="http://www.w3.org/2000/svg"
+       style="position:absolute;bottom:0;left:0;width:100%;height:85%;">
+    <defs>
+      <radialGradient id="glowCenter" cx="50%" cy="30%" r="50%">
+        <stop offset="0%" stop-color="#c8a96e" stop-opacity="0.08"/>
+        <stop offset="100%" stop-color="#c8a96e" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="trunkGrad" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="#0a1a0d"/>
+        <stop offset="50%" stop-color="#1a3a20"/>
+        <stop offset="100%" stop-color="#0a1a0d"/>
+      </linearGradient>
+      <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+      <filter id="blur3"><feGaussianBlur stdDeviation="3"/></filter>
+      <filter id="blur12"><feGaussianBlur stdDeviation="12"/></filter>
+    </defs>
+
+    <!-- Deep background glow -->
+    <rect width="1200" height="700" fill="url(#glowCenter)"/>
+
+    <!-- Far background trees (hazy) -->
+    <g filter="url(#blur6)" opacity="0.5">
+      <ellipse cx="200" cy="320" rx="90" ry="220" fill="#0d2218"/>
+      <ellipse cx="400" cy="280" rx="110" ry="260" fill="#0f2a1c"/>
+      <ellipse cx="700" cy="300" rx="130" ry="240" fill="#0d2218"/>
+      <ellipse cx="950" cy="290" rx="100" ry="250" fill="#102418"/>
+      <ellipse cx="1100" cy="330" rx="80" ry="210" fill="#0d2218"/>
+    </g>
+
+    <!-- Mid trees -->
+    <g filter="url(#blur3)" opacity="0.75">
+      <!-- Left cluster -->
+      <rect x="80" y="180" width="28" height="420" fill="url(#trunkGrad)"/>
+      <ellipse cx="94" cy="175" rx="70" ry="120" fill="#163d24"/>
+      <ellipse cx="70" cy="200" rx="55" ry="100" fill="#1a4a2c"/>
+      <ellipse cx="120" cy="185" rx="60" ry="105" fill="#163d24"/>
+
+      <!-- Center-left -->
+      <rect x="340" y="150" width="32" height="450" fill="url(#trunkGrad)"/>
+      <ellipse cx="356" cy="145" rx="85" ry="140" fill="#1a4a2e"/>
+      <ellipse cx="320" cy="170" rx="65" ry="115" fill="#1f5535"/>
+      <ellipse cx="390" cy="160" rx="70" ry="120" fill="#1a4a2e"/>
+
+      <!-- Center-right -->
+      <rect x="830" y="140" width="35" height="460" fill="url(#trunkGrad)"/>
+      <ellipse cx="847" cy="135" rx="90" ry="145" fill="#163d24"/>
+      <ellipse cx="810" cy="155" rx="70" ry="120" fill="#1a4a2e"/>
+      <ellipse cx="880" cy="148" rx="75" ry="125" fill="#163d24"/>
+
+      <!-- Right -->
+      <rect x="1080" y="190" width="26" height="410" fill="url(#trunkGrad)"/>
+      <ellipse cx="1093" cy="185" rx="65" ry="115" fill="#163d24"/>
+      <ellipse cx="1060" cy="205" rx="50" ry="95" fill="#1a4a2e"/>
+    </g>
+
+    <!-- Ground foliage -->
+    <ellipse cx="600" cy="700" rx="700" ry="100" fill="#060e08" filter="url(#blur3)"/>
+
+    <!-- Foreground large leaves - left -->
+    <g class="leaf-cluster" style="animation-duration:6s; left:0; bottom:0; position:absolute">
+      <g transform="translate(0,540)">
+        <path d="M-20,160 Q60,-40 180,20 Q100,80 -20,160Z" fill="#1a4a2e" opacity="0.95"/>
+        <path d="M-20,160 Q30,60 130,50" stroke="#2d7a4f" stroke-width="1.5" fill="none" opacity="0.5"/>
+        <path d="M10,120 Q80,10 200,60 Q120,110 10,120Z" fill="#1f5535" opacity="0.9"/>
+        <path d="M-10,180 Q50,100 160,130 Q90,170 -10,180Z" fill="#163d24" opacity="0.95"/>
+      </g>
+    </g>
+
+    <!-- Foreground leaves - right -->
+    <g class="leaf-cluster" style="animation-duration:7s; animation-delay:-3s">
+      <g transform="translate(1000,500)">
+        <path d="M220,200 Q140,-20 20,30 Q100,100 220,200Z" fill="#1a4a2e" opacity="0.95"/>
+        <path d="M220,200 Q170,80 70,60" stroke="#2d7a4f" stroke-width="1.5" fill="none" opacity="0.5"/>
+        <path d="M200,150 Q130,-10 10,40 Q90,100 200,150Z" fill="#1f5535" opacity="0.85"/>
+        <path d="M240,220 Q150,100 40,130 Q110,180 240,220Z" fill="#163d24" opacity="0.9"/>
+      </g>
+    </g>
+
+    <!-- Foreground bottom leaves -->
+    <g class="leaf-cluster" style="animation-duration:9s; animation-delay:-4s">
+      <g transform="translate(280,580)">
+        <path d="M0,120 Q100,-30 220,10 Q140,70 0,120Z" fill="#1f5535" opacity="0.9"/>
+        <path d="M0,120 Q70,20 180,30" stroke="#2d7a4f" stroke-width="1" fill="none" opacity="0.4"/>
+      </g>
+    </g>
+    <g class="leaf-cluster" style="animation-duration:8s; animation-delay:-2s">
+      <g transform="translate(700,590)">
+        <path d="M0,100 Q-80,-20 -190,20 Q-120,60 0,100Z" fill="#163d24" opacity="0.9"/>
+      </g>
+    </g>
+
+    <!-- Mist layers in SVG -->
+    <ellipse cx="600" cy="420" rx="700" ry="55" fill="#a0d4bc" opacity="0.04" filter="url(#blur12)"/>
+    <ellipse cx="500" cy="380" rx="600" ry="40" fill="#b0dcc8" opacity="0.03" filter="url(#blur12)"/>
+  </svg>
+
+  <!-- CSS Mist -->
+  <div class="mist-layer"></div>
+  <div class="mist-layer"></div>
+  <div class="mist-layer"></div>
+
+  <div id="ground"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="card">
+
+    <div class="title-block">
+      <h1>Breathe</h1>
+      <p>Box Breathing · Jungle Sanctuary</p>
+    </div>
+
+    <div id="phase-bar-wrap"><div id="phase-bar"></div></div>
+
+    <div id="breath-ring">
+      <div class="ring-outer"></div>
+      <div class="ring-mid"></div>
+      <div class="ring-core"></div>
+      <div class="ring-dot"></div>
+    </div>
+
+    <div id="phase-block">
+      <span id="phase-label">Ready</span>
+      <span id="phase-count">—</span>
+    </div>
+
+    <span id="session-timer">00 : 00</span>
+
+    <div class="controls">
+      <button class="btn" id="resetBtn" onclick="resetBreath()">Reset</button>
+      <button class="btn primary" id="startBtn" onclick="toggleBreath()">Begin</button>
+    </div>
+
+    <div class="volume-row">
+      <span class="vol-icon">🍃</span>
+      <input type="range" id="volSlider" min="0" max="1" step="0.01" value="0.6" oninput="setVolume(this.value)">
+      <span class="vol-icon">🔊</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+const PHASES = [
+  { name: 'Inhale',  cls: 'inhale',   dur: 4 },
+  { name: 'Hold',    cls: 'hold-in',  dur: 4 },
+  { name: 'Exhale',  cls: 'exhale',   dur: 4 },
+  { name: 'Hold',    cls: 'hold-out', dur: 4 },
+];
+let phaseIdx = 0, phaseRemain = PHASES[0].dur;
+let running = false;
+let sessionSecs = 0;
+let animFrame, phaseInterval, sessionInterval;
+let phaseBarAnim = null;
+
+// ── AUDIO ──
+let ctx = null, masterGain, windGain, droneGain, birdTimeout;
+
+function initAudio() {
+  if (ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = ctx.createGain();
+  masterGain.gain.setValueAtTime(0.6, ctx.currentTime);
+  masterGain.connect(ctx.destination);
+
+  createWind();
+  createDrone();
+  scheduleBirds();
+}
+
+function createWind() {
+  // Brown noise for wind/leaves
+  const bufLen = ctx.sampleRate * 4;
+  const buf = ctx.createBuffer(2, bufLen, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c);
+    let last = 0;
+    for (let i = 0; i < bufLen; i++) {
+      const w = Math.random() * 2 - 1;
+      last = (last + 0.02 * w) / 1.02;
+      d[i] = last * 14;
+    }
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf; src.loop = true;
+
+  // Low-pass filter
+  const lpf = ctx.createBiquadFilter();
+  lpf.type = 'lowpass'; lpf.frequency.value = 380; lpf.Q.value = 0.8;
+
+  // Subtle tremolo for wind gusts
+  const tremOsc = ctx.createOscillator();
+  tremOsc.frequency.value = 0.12;
+  const tremGain = ctx.createGain();
+  tremGain.gain.value = 0.3;
+  tremOsc.connect(tremGain);
+
+  windGain = ctx.createGain();
+  windGain.gain.value = 0.7;
+
+  const finalGain = ctx.createGain();
+  finalGain.gain.value = 0.55;
+  tremGain.connect(finalGain.gain);
+
+  src.connect(lpf);
+  lpf.connect(windGain);
+  windGain.connect(finalGain);
+  finalGain.connect(masterGain);
+
+  src.start();
+  tremOsc.start();
+}
+
+function createDrone() {
+  // Low harmonic hum
+  const freqs = [55, 82.4, 110];
+  droneGain = ctx.createGain();
+  droneGain.gain.value = 0.12;
+  droneGain.connect(masterGain);
+
+  freqs.forEach((f, i) => {
+    const o = ctx.createOscillator();
+    o.type = i === 0 ? 'sine' : 'triangle';
+    o.frequency.value = f + (Math.random() - 0.5) * 0.5;
+    const g = ctx.createGain();
+    g.gain.value = i === 0 ? 0.5 : 0.25;
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 0.05 + i * 0.03;
+    const lfoG = ctx.createGain();
+    lfoG.gain.value = 0.008;
+    lfo.connect(lfoG); lfoG.connect(o.frequency);
+    o.connect(g); g.connect(droneGain);
+    o.start(); lfo.start();
+  });
+}
+
+function scheduleBirds() {
+  if (!ctx || !running) return;
+  const delay = 6000 + Math.random() * 12000;
+  birdTimeout = setTimeout(() => {
+    if (running) { chirp(); scheduleBirds(); }
+  }, delay);
+}
+
+function chirp() {
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  const n = 2 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < n; i++) {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine';
+    const base = 1200 + Math.random() * 800;
+    o.frequency.setValueAtTime(base, t + i * 0.18);
+    o.frequency.exponentialRampToValueAtTime(base * 1.3, t + i * 0.18 + 0.06);
+    o.frequency.exponentialRampToValueAtTime(base * 0.9, t + i * 0.18 + 0.12);
+    g.gain.setValueAtTime(0, t + i * 0.18);
+    g.gain.linearRampToValueAtTime(0.06, t + i * 0.18 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.18 + 0.14);
+    o.connect(g); g.connect(masterGain);
+    o.start(t + i * 0.18); o.stop(t + i * 0.18 + 0.16);
+  }
+}
+
+function playChime(phase) {
+  if (!ctx) return;
+  const tones = { inhale: [523.25, 659.25], 'hold-in': [659.25, 783.99], exhale: [392, 523.25], 'hold-out': [329.63, 392] };
+  const t = ctx.currentTime;
+  const freqs = tones[phase] || [440, 550];
+  freqs.forEach((f, i) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(0, t + i * 0.08);
+    g.gain.linearRampToValueAtTime(0.07, t + i * 0.08 + 0.04);
+    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.08 + 1.2);
+    o.connect(g); g.connect(masterGain);
+    o.start(t + i * 0.08); o.stop(t + i * 0.08 + 1.3);
+  });
+}
+
+function setVolume(v) {
+  if (!ctx) initAudio();
+  if (masterGain) masterGain.gain.setTargetAtTime(parseFloat(v), ctx.currentTime, 0.1);
+}
+
+// ── BREATHING LOGIC ──
+function updateDisplay() {
+  const ph = PHASES[phaseIdx];
+  document.getElementById('phase-label').textContent = ph.name;
+  document.getElementById('phase-count').textContent = phaseRemain;
+  const ring = document.getElementById('breath-ring');
+  ring.className = ph.cls;
+}
+
+function nextPhase() {
+  phaseIdx = (phaseIdx + 1) % PHASES.length;
+  phaseRemain = PHASES[phaseIdx].dur;
+  playChime(PHASES[phaseIdx].cls);
+  updateDisplay();
+  animatePhaseBar(PHASES[phaseIdx].dur);
+}
+
+function animatePhaseBar(dur) {
+  const bar = document.getElementById('phase-bar');
+  if (phaseBarAnim) cancelAnimationFrame(phaseBarAnim);
+  const start = performance.now();
+  const total = dur * 1000;
+  function step(now) {
+    const elapsed = now - start;
+    const pct = Math.min(100, (elapsed / total) * 100);
+    bar.style.width = pct + '%';
+    if (pct < 100 && running) phaseBarAnim = requestAnimationFrame(step);
+  }
+  bar.style.width = '0%';
+  phaseBarAnim = requestAnimationFrame(step);
+}
+
+function tick() {
+  phaseRemain--;
+  if (phaseRemain <= 0) {
+    nextPhase();
+  } else {
+    document.getElementById('phase-count').textContent = phaseRemain;
+  }
+}
+
+function tickSession() {
+  sessionSecs++;
+  const m = String(Math.floor(sessionSecs / 60)).padStart(2,'0');
+  const s = String(sessionSecs % 60).padStart(2,'0');
+  document.getElementById('session-timer').textContent = m + ' : ' + s;
+}
+
+function toggleBreath() {
+  initAudio();
+  if (ctx.state === 'suspended') ctx.resume();
+
+  running = !running;
+  document.getElementById('startBtn').textContent = running ? 'Pause' : 'Resume';
+
+  if (running) {
+    scheduleBirds();
+    animatePhaseBar(phaseRemain);
+    phaseInterval = setInterval(tick, 1000);
+    sessionInterval = setInterval(tickSession, 1000);
+  } else {
+    clearInterval(phaseInterval);
+    clearInterval(sessionInterval);
+    clearTimeout(birdTimeout);
+    if (phaseBarAnim) cancelAnimationFrame(phaseBarAnim);
+  }
+}
+
+function resetBreath() {
+  running = false;
+  clearInterval(phaseInterval);
+  clearInterval(sessionInterval);
+  clearTimeout(birdTimeout);
+  if (phaseBarAnim) cancelAnimationFrame(phaseBarAnim);
+  phaseIdx = 0;
+  phaseRemain = PHASES[0].dur;
+  sessionSecs = 0;
+  document.getElementById('session-timer').textContent = '00 : 00';
+  document.getElementById('startBtn').textContent = 'Begin';
+  document.getElementById('phase-label').textContent = 'Ready';
+  document.getElementById('phase-count').textContent = '—';
+  document.getElementById('phase-bar').style.width = '0%';
+  document.getElementById('breath-ring').className = '';
+}
+
+// Init display
+updateDisplay();
+document.getElementById('phase-label').textContent = 'Ready';
+document.getElementById('phase-count').textContent = '—';
+document.getElementById('breath-ring').className = '';
+</script>
+</body>
+</html>
